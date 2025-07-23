@@ -29,7 +29,7 @@ export default function FixedBottomForm() {
         name: name.trim(),
         phone: phone.trim(),
         message: '[하단 고정폼] 빠른 상담 신청',
-        type: 'fixed_bottom'
+        type: 'quick_contact'
       };
       
       const response = await fetch('/api/contact', {
