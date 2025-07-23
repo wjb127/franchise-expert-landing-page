@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getContactSubmissions, getSubmissionCount } from '../../../lib/supabase';
 
 interface ContactSubmission {
   id: number;
@@ -20,23 +19,84 @@ export default function AdminPage() {
   const [filter, setFilter] = useState<'all' | 'full_form' | 'quick_contact'>('all');
   const [weeklyCount, setWeeklyCount] = useState<number>(0);
 
+  const fetchSubmissions = async () => {
+    console.log('=== 제출 데이터 조회 시작 ===');
+    
+    try {
+      const response = await fetch('/api/admin/submissions');
+      console.log('API 응답 상태 (제출 데이터):', response.status);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('API 오류 응답 (제출 데이터):', errorData);
+        throw new Error(errorData.error || `HTTP ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log('제출 데이터 조회 성공:', result.data?.length || 0, '건');
+      
+      if (result.success && result.data) {
+        return result.data;
+      } else {
+        throw new Error('API 응답 형식이 올바르지 않습니다.');
+      }
+    } catch (error) {
+      console.error('제출 데이터 조회 오류:', error);
+      throw error;
+    }
+  };
+
+  const fetchWeeklyCount = async () => {
+    console.log('=== 주간 카운트 조회 시작 ===');
+    
+    try {
+      const response = await fetch('/api/admin/submissions?days=7');
+      console.log('API 응답 상태 (주간 카운트):', response.status);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('API 오류 응답 (주간 카운트):', errorData);
+        throw new Error(errorData.error || `HTTP ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log('주간 카운트 조회 성공:', result.count, '건');
+      
+      if (result.success && typeof result.count === 'number') {
+        return result.count;
+      } else {
+        throw new Error('API 응답 형식이 올바르지 않습니다.');
+      }
+    } catch (error) {
+      console.error('주간 카운트 조회 오류:', error);
+      return 0; // 카운트 오류는 0으로 기본값 설정
+    }
+  };
+
   const fetchData = async () => {
     try {
       setLoading(true);
       setError(null);
+      console.log('=== 대시보드 데이터 로딩 시작 ===');
       
       const [submissionsData, weeklyCountData] = await Promise.all([
-        getContactSubmissions(),
-        getSubmissionCount(7)
+        fetchSubmissions(),
+        fetchWeeklyCount()
       ]);
       
       setSubmissions(submissionsData);
       setWeeklyCount(weeklyCountData);
+      console.log('✅ 대시보드 데이터 로딩 완료');
     } catch (err) {
-      console.error('데이터 로딩 오류:', err);
-      setError(err instanceof Error ? err.message : '데이터를 불러오는데 실패했습니다.');
+      console.error('=== 대시보드 데이터 로딩 오류 ===');
+      console.error('오류 타입:', err?.constructor?.name);
+      console.error('오류 메시지:', err instanceof Error ? err.message : err);
+      
+      const errorMessage = err instanceof Error ? err.message : '데이터를 불러오는데 실패했습니다.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
+      console.log('=== 대시보드 데이터 로딩 완료 ===');
     }
   };
 
@@ -44,7 +104,10 @@ export default function AdminPage() {
     fetchData();
     
     // 30초마다 자동 새로고침
-    const interval = setInterval(fetchData, 30000);
+    const interval = setInterval(() => {
+      console.log('⏰ 자동 새로고침 실행');
+      fetchData();
+    }, 30000);
     
     return () => clearInterval(interval);
   }, []);
@@ -108,12 +171,17 @@ export default function AdminPage() {
             <div className="text-red-500 text-4xl mb-4">⚠️</div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">오류 발생</h2>
             <p className="text-gray-600 mb-4">{error}</p>
-            <button
-              onClick={fetchData}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-            >
-              다시 시도
-            </button>
+            <div className="space-y-2">
+              <button
+                onClick={fetchData}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                다시 시도
+              </button>
+              <p className="text-xs text-gray-500">
+                RLS 오류가 지속되면 브라우저 콘솔을 확인하세요
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -131,7 +199,10 @@ export default function AdminPage() {
               <p className="text-gray-600 mt-1">실시간 상담 신청 현황을 확인할 수 있습니다</p>
             </div>
             <button
-              onClick={fetchData}
+              onClick={() => {
+                console.log('🔄 수동 새로고침 실행');
+                fetchData();
+              }}
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
