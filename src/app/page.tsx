@@ -4,6 +4,7 @@ import ExpertSection from '@/components/ExpertSection';
 import BenefitsSection from '@/components/BenefitsSection';
 import FAQSection from '@/components/FAQSection';
 import OneClickConsultation from '@/components/OneClickConsultation';
+import Footer from '@/components/Footer';
 import ContactForm from '@/components/ContactForm';
 
 export default function Home() {
@@ -15,6 +16,7 @@ export default function Home() {
       <BenefitsSection />
       <OneClickConsultation />
       <FAQSection />
+      <Footer />
       <ContactForm />
       {/* 하단 고정 폼을 위한 여백 */}
       <div className="h-24"></div>
