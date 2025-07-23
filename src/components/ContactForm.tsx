@@ -1,218 +1,111 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { submitContactForm } from '../../lib/supabase';
 
 export default function ContactForm() {
-  const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    businessType: '',
-    hasExperience: '',
-    agreeToTerms: false
-  });
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
-    if (type === 'checkbox') {
-      const target = e.target as HTMLInputElement;
-      setFormData(prev => ({
-        ...prev,
-        [name]: target.checked
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    }
-  };
+  const [submitSuccess, setSubmitSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.agreeToTerms) {
-      alert('개인정보 수집/이용/제공에 동의해주세요.');
+    if (!name.trim() || !phone.trim()) {
+      alert('이름과 전화번호를 모두 입력해주세요.');
       return;
     }
 
     setIsSubmitting(true);
-    setError(null);
-
+    
     try {
-      // Supabase에 데이터 저장
-      const message = `업종: ${formData.businessType}, 사업경험: ${formData.hasExperience}`;
-      
       await submitContactForm({
-        name: formData.name,
-        phone: formData.phone,
-        message: message,
+        name: name.trim(),
+        phone: phone.trim(),
+        message: '하단 고정 원클릭 상담 신청',
         type: 'quick_contact'
       });
-
-      setIsSubmitted(true);
       
-      // 3초 후 폼 리셋
+      setSubmitSuccess(true);
+      setName('');
+      setPhone('');
+      
       setTimeout(() => {
-        setIsSubmitted(false);
-        setFormData({
-          name: '',
-          phone: '',
-          businessType: '',
-          hasExperience: '',
-          agreeToTerms: false
-        });
+        setSubmitSuccess(false);
       }, 3000);
-
-    } catch (err) {
-      console.error('폼 제출 오류:', err);
-      setError('문의 접수 중 오류가 발생했습니다. 다시 시도해주세요.');
+    } catch (error) {
+      console.error('상담 신청 오류:', error);
+      alert('상담 신청 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  if (submitSuccess) {
+    return (
+      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-4 shadow-lg z-50">
+        <div className="container mx-auto flex items-center justify-center">
+          <div className="flex items-center">
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="font-medium">상담 신청이 완료되었습니다! 1시간 이내에 연락드리겠습니다.</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-2xl z-50">
-      <div className="container mx-auto px-4 py-6">
-        <div className="bg-blue-900 rounded-xl p-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
+      <div className="container mx-auto px-4 py-3">
+        <form onSubmit={handleSubmit}>
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
             {/* 좌측 텍스트 */}
-            <div className="text-white mb-6 lg:mb-0 lg:mr-8">
-              <h3 className="text-xl font-bold mb-2">원클릭 상담 신청</h3>
-              <p className="text-blue-100 text-sm">
-                정확한 조건 안내를 위해 간단한 정보를 남겨주세요.<br/>
-                <span className="text-red-300">*회원가입/정보수집 이외 아무런 비용이나 제약이 없습니다.</span>
-              </p>
+            <div className="lg:flex-shrink-0">
+              <h3 className="text-lg font-bold text-gray-900 mb-1">원클릭 상담 신청</h3>
+              <p className="text-sm text-gray-600 mb-1">정확한 조건 안내를 위해 간단한 정보를 남겨주세요.</p>
+              <p className="text-xs text-blue-600 font-medium">*회원가입/정보수집 이외 아무런 비용이나 제약이 없습니다.</p>
             </div>
 
             {/* 우측 폼 */}
-            <div className="flex-shrink-0">
-              {!isSubmitted ? (
-                <form onSubmit={handleSubmit} className="bg-white rounded-lg p-6 min-w-[400px] max-w-md">
-                  {error && (
-                    <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded">
-                      {error}
+            <div className="lg:flex-shrink-0">
+              <div className="flex flex-col sm:flex-row gap-2 lg:w-96">
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="이름"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  required
+                />
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="전화번호"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  required
+                />
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold px-4 py-2 rounded-lg transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-sm whitespace-nowrap"
+                >
+                  {isSubmitting ? (
+                    <div className="flex items-center">
+                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
+                      신청중
                     </div>
+                  ) : (
+                    '무료상담'
                   )}
-                  
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <input
-                        type="text"
-                        name="name"
-                        placeholder="이름"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                        required
-                        disabled={isSubmitting}
-                      />
-                    </div>
-                    <div>
-                      <input
-                        type="tel"
-                        name="phone"
-                        placeholder="연락처(-없이 입력)"
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                        required
-                        disabled={isSubmitting}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <select
-                        name="businessType"
-                        value={formData.businessType}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
-                        required
-                        disabled={isSubmitting}
-                      >
-                        <option value="">업종 선택</option>
-                        <option value="restaurant">외식업</option>
-                        <option value="cafe">카페/디저트</option>
-                        <option value="retail">소매업</option>
-                        <option value="service">서비스업</option>
-                        <option value="education">교육업</option>
-                        <option value="beauty">미용업</option>
-                        <option value="fitness">헬스/피트니스</option>
-                        <option value="other">기타</option>
-                      </select>
-                    </div>
-                    <div>
-                      <select
-                        name="hasExperience"
-                        value={formData.hasExperience}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
-                        required
-                        disabled={isSubmitting}
-                      >
-                        <option value="">사업경험</option>
-                        <option value="beginner">신규창업</option>
-                        <option value="experienced">기존사업자</option>
-                        <option value="multiple">다점포운영</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="mb-4">
-                    <label className="flex items-start text-sm text-gray-600">
-                      <input
-                        type="checkbox"
-                        name="agreeToTerms"
-                        checked={formData.agreeToTerms}
-                        onChange={handleInputChange}
-                        className="mt-0.5 mr-2 text-blue-600 focus:ring-blue-500"
-                        required
-                        disabled={isSubmitting}
-                      />
-                      <span>
-                        개인정보 수집/이용/제공 동의{' '}
-                        <Link href="/privacy" className="text-blue-600 underline hover:text-blue-700">
-                          [더보기]
-                        </Link>
-                      </span>
-                    </label>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition-colors font-semibold text-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
-                  >
-                    {isSubmitting ? '접수 중...' : '신청'}
-                  </button>
-                </form>
-              ) : (
-                <div className="bg-white rounded-lg p-6 min-w-[400px] max-w-md text-center">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-2">신청이 완료되었습니다!</h4>
-                  <p className="text-sm text-gray-600 mb-4">
-                    영업시간 내에 전문 상담사가<br/>
-                    연락드리겠습니다.
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    평일 09:00 - 18:00
-                  </p>
-                </div>
-              )}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );

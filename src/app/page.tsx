@@ -16,6 +16,8 @@ export default function Home() {
       <OneClickConsultation />
       <FAQSection />
       <ContactForm />
+      {/* 하단 고정 폼을 위한 여백 */}
+      <div className="h-24"></div>
     </main>
   );
 }
