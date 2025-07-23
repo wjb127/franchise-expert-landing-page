@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import FadeInSection from './FadeInSection';
 
 export default function FAQSection() {
   const [openFAQ, setOpenFAQ] = useState<number | null>(0);
@@ -36,94 +37,106 @@ export default function FAQSection() {
   return (
     <section className="py-20 bg-gray-50">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            자주 묻는 질문
-          </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            가맹거래사 서비스에 대해 궁금한 점들을 확인해보세요
-          </p>
-        </div>
+        <FadeInSection>
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              자주 묻는 질문
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              가맹거래사 서비스에 대해 궁금한 점들을 확인해보세요
+            </p>
+          </div>
+        </FadeInSection>
 
         <div className="max-w-4xl mx-auto">
           {faqs.map((faq, index) => (
-            <div key={index} className="mb-4">
-              <button
-                className={`w-full text-left p-6 bg-white rounded-lg border transition-all duration-200 hover:shadow-md ${
-                  openFAQ === index ? 'border-blue-500 shadow-md' : 'border-gray-200'
-                }`}
-                onClick={() => setOpenFAQ(openFAQ === index ? null : index)}
-              >
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-gray-900 pr-4">
-                    {faq.question}
-                  </h3>
-                  <div className={`transform transition-transform duration-200 ${
-                    openFAQ === index ? 'rotate-180' : ''
-                  }`}>
-                    <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
+            <FadeInSection key={index} delay={200 + index * 100} direction="up">
+              <div className="mb-4">
+                <button
+                  className={`w-full text-left p-6 bg-white rounded-lg border transition-all duration-200 hover:shadow-md ${
+                    openFAQ === index ? 'border-blue-500 shadow-md' : 'border-gray-200'
+                  }`}
+                  onClick={() => setOpenFAQ(openFAQ === index ? null : index)}
+                >
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-gray-900 pr-4">
+                      {faq.question}
+                    </h3>
+                    <div className={`transform transition-transform duration-200 ${
+                      openFAQ === index ? 'rotate-180' : ''
+                    }`}>
+                      <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
                   </div>
-                </div>
-                {openFAQ === index && (
-                  <div className="mt-4 pt-4 border-t border-gray-100">
-                    <p className="text-gray-600 leading-relaxed">
-                      {faq.answer}
-                    </p>
-                  </div>
-                )}
-              </button>
-            </div>
+                  {openFAQ === index && (
+                    <div className="mt-4 pt-4 border-t border-gray-100">
+                      <p className="text-gray-600 leading-relaxed">
+                        {faq.answer}
+                      </p>
+                    </div>
+                  )}
+                </button>
+              </div>
+            </FadeInSection>
           ))}
         </div>
 
         {/* 추가 문의 섹션 */}
-        <div className="mt-16 text-center">
-          <div className="bg-white rounded-2xl p-8 max-w-2xl mx-auto border border-gray-200">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">
-              더 궁금한 점이 있으신가요?
-            </h3>
-            <p className="text-gray-600 mb-6">
-              가맹거래사 심상민이 직접 1:1로 자세히 상담해드립니다
-            </p>
+        <FadeInSection delay={1000}>
+          <div className="mt-16 text-center">
+            <div className="bg-white rounded-2xl p-8 max-w-2xl mx-auto border border-gray-200">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                더 궁금한 점이 있으신가요?
+              </h3>
+              <p className="text-gray-600 mb-6">
+                가맹거래사 심상민이 직접 1:1로 자세히 상담해드립니다
+              </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                </div>
-                <h4 className="font-semibold text-gray-900 mb-1">전화 상담</h4>
-                <p className="text-sm text-gray-600 mb-2">평일 09:00 - 18:00</p>
-                <p className="text-blue-600 font-semibold">연락처는 하단 폼으로</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <FadeInSection delay={1200} direction="up">
+                  <div className="text-center p-4 bg-blue-50 rounded-lg">
+                    <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      </svg>
+                    </div>
+                    <h4 className="font-semibold text-gray-900 mb-1">전화 상담</h4>
+                    <p className="text-sm text-gray-600 mb-2">평일 09:00 - 18:00</p>
+                    <p className="text-blue-600 font-semibold">연락처는 하단 폼으로</p>
+                  </div>
+                </FadeInSection>
+                
+                <FadeInSection delay={1400} direction="up">
+                  <div className="text-center p-4 bg-green-50 rounded-lg">
+                    <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      </svg>
+                    </div>
+                    <h4 className="font-semibold text-gray-900 mb-1">상세 문의</h4>
+                    <p className="text-sm text-gray-600 mb-2">24시간 접수 가능</p>
+                    <Link href="/contact" className="text-green-600 font-semibold hover:text-green-700">
+                      문의 작성하기
+                    </Link>
+                  </div>
+                </FadeInSection>
               </div>
-              
-              <div className="text-center p-4 bg-green-50 rounded-lg">
-                <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
-                </div>
-                <h4 className="font-semibold text-gray-900 mb-1">상세 문의</h4>
-                <p className="text-sm text-gray-600 mb-2">24시간 접수 가능</p>
-                <Link href="/contact" className="text-green-600 font-semibold hover:text-green-700">
-                  문의 작성하기
-                </Link>
-              </div>
-            </div>
 
-            <div className="text-center">
-              <Link 
-                href="/contact"
-                className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
-              >
-                상세 문의하기
-              </Link>
+              <FadeInSection delay={1600}>
+                <div className="text-center">
+                  <Link 
+                    href="/contact"
+                    className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                  >
+                    상세 문의하기
+                  </Link>
+                </div>
+              </FadeInSection>
             </div>
           </div>
-        </div>
+        </FadeInSection>
       </div>
     </section>
   );
