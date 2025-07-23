@@ -11,6 +11,25 @@ interface ContactSubmission {
   created_at: string;
 }
 
+interface DailyStat {
+  date: string;
+  total: number;
+  quick_contact: number;
+  full_form: number;
+  displayDate: string;
+}
+
+interface DailyStatsResponse {
+  success: boolean;
+  data: DailyStat[];
+  summary: {
+    totalDays: number;
+    totalSubmissions: number;
+    quickContactCount: number;
+    fullFormCount: number;
+  };
+}
+
 export default function AdminPage() {
   const [submissions, setSubmissions] = useState<ContactSubmission[]>([]);
   const [loading, setLoading] = useState(true);
@@ -18,6 +37,8 @@ export default function AdminPage() {
   const [selectedSubmission, setSelectedSubmission] = useState<ContactSubmission | null>(null);
   const [filter, setFilter] = useState<'all' | 'full_form' | 'quick_contact'>('all');
   const [weeklyCount, setWeeklyCount] = useState<number>(0);
+  const [dailyStats, setDailyStats] = useState<DailyStat[]>([]);
+  const [chartDays, setChartDays] = useState<number>(7);
 
   const fetchSubmissions = async () => {
     console.log('=== 제출 데이터 조회 시작 ===');
@@ -73,19 +94,48 @@ export default function AdminPage() {
     }
   };
 
+  const fetchDailyStats = async (days: number = 7) => {
+    console.log('=== 일별 통계 조회 시작 ===');
+    
+    try {
+      const response = await fetch(`/api/admin/daily-stats?days=${days}`);
+      console.log('API 응답 상태 (일별 통계):', response.status);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('API 오류 응답 (일별 통계):', errorData);
+        throw new Error(errorData.error || `HTTP ${response.status}`);
+      }
+      
+      const result: DailyStatsResponse = await response.json();
+      console.log('일별 통계 조회 성공:', result.data?.length || 0, '일');
+      
+      if (result.success && result.data) {
+        return result.data;
+      } else {
+        throw new Error('API 응답 형식이 올바르지 않습니다.');
+      }
+    } catch (error) {
+      console.error('일별 통계 조회 오류:', error);
+      return []; // 통계 오류는 빈 배열로 기본값 설정
+    }
+  };
+
   const fetchData = async () => {
     try {
       setLoading(true);
       setError(null);
       console.log('=== 대시보드 데이터 로딩 시작 ===');
       
-      const [submissionsData, weeklyCountData] = await Promise.all([
+      const [submissionsData, weeklyCountData, dailyStatsData] = await Promise.all([
         fetchSubmissions(),
-        fetchWeeklyCount()
+        fetchWeeklyCount(),
+        fetchDailyStats(chartDays)
       ]);
       
       setSubmissions(submissionsData);
       setWeeklyCount(weeklyCountData);
+      setDailyStats(dailyStatsData);
       console.log('✅ 대시보드 데이터 로딩 완료');
     } catch (err) {
       console.error('=== 대시보드 데이터 로딩 오류 ===');
@@ -100,6 +150,18 @@ export default function AdminPage() {
     }
   };
 
+  const updateChartPeriod = async (days: number) => {
+    console.log(`📊 차트 기간 변경: ${days}일`);
+    setChartDays(days);
+    
+    try {
+      const newDailyStats = await fetchDailyStats(days);
+      setDailyStats(newDailyStats);
+    } catch (error) {
+      console.error('차트 데이터 업데이트 오류:', error);
+    }
+  };
+
   useEffect(() => {
     fetchData();
     
@@ -110,7 +172,7 @@ export default function AdminPage() {
     }, 30000);
     
     return () => clearInterval(interval);
-  }, []);
+  }, [chartDays]);
 
   const filteredSubmissions = submissions.filter(submission => {
     if (filter === 'all') return true;
@@ -149,6 +211,9 @@ export default function AdminPage() {
         return 'bg-gray-100 text-gray-800';
     }
   };
+
+  // 차트용 최대값 계산
+  const maxValue = Math.max(...dailyStats.map(stat => stat.total), 1);
 
   if (loading) {
     return (
@@ -211,6 +276,122 @@ export default function AdminPage() {
               <span>새로고침</span>
             </button>
           </div>
+        </div>
+
+        {/* 일별 문의 현황 차트 */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h3 className="text-lg font-medium text-gray-900">일별 문의 현황</h3>
+              <p className="text-sm text-gray-600">최근 {chartDays}일간 문의 추이</p>
+            </div>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => updateChartPeriod(7)}
+                className={`px-3 py-1 rounded text-sm transition-colors ${
+                  chartDays === 7 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                7일
+              </button>
+              <button
+                onClick={() => updateChartPeriod(14)}
+                className={`px-3 py-1 rounded text-sm transition-colors ${
+                  chartDays === 14 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                14일
+              </button>
+              <button
+                onClick={() => updateChartPeriod(30)}
+                className={`px-3 py-1 rounded text-sm transition-colors ${
+                  chartDays === 30 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                30일
+              </button>
+            </div>
+          </div>
+          
+          {dailyStats.length > 0 ? (
+            <div className="relative">
+              {/* 차트 영역 */}
+              <div className="flex items-end justify-between h-64 border-b border-l border-gray-200 p-4">
+                {dailyStats.map((stat, index) => {
+                  const barHeight = maxValue > 0 ? (stat.total / maxValue) * 240 : 0;
+                  
+                  return (
+                    <div key={stat.date} className="flex flex-col items-center group">
+                      {/* 막대 그래프 */}
+                      <div className="relative mb-2 flex flex-col items-center">
+                        {/* 전체 막대 */}
+                        <div 
+                          className="w-8 bg-gradient-to-t from-blue-500 to-blue-400 rounded-t-sm hover:from-blue-600 hover:to-blue-500 transition-all duration-200 relative group-hover:shadow-lg"
+                          style={{ height: `${barHeight}px`, minHeight: stat.total > 0 ? '8px' : '0px' }}
+                        >
+                          {/* 간편 문의 (녹색 부분) */}
+                          {stat.quick_contact > 0 && (
+                            <div 
+                              className="absolute bottom-0 w-full bg-gradient-to-t from-green-500 to-green-400 rounded-t-sm"
+                              style={{ 
+                                height: `${stat.total > 0 ? (stat.quick_contact / stat.total) * barHeight : 0}px`,
+                                minHeight: stat.quick_contact > 0 ? '4px' : '0px'
+                              }}
+                            ></div>
+                          )}
+                        </div>
+                        
+                        {/* 호버 시 상세 정보 */}
+                        <div className="invisible group-hover:visible absolute -top-16 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
+                          <div>전체: {stat.total}건</div>
+                          <div>간편: {stat.quick_contact}건</div>
+                          <div>상세: {stat.full_form}건</div>
+                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+                        </div>
+                        
+                        {/* 값 표시 */}
+                        {stat.total > 0 && (
+                          <div className="text-xs font-medium text-gray-700 mt-1">
+                            {stat.total}
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* 날짜 레이블 */}
+                      <div className="text-xs text-gray-500 text-center w-12">
+                        {stat.displayDate}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {/* 범례 */}
+              <div className="flex justify-center mt-4 space-x-6">
+                <div className="flex items-center">
+                  <div className="w-4 h-4 bg-gradient-to-t from-blue-500 to-blue-400 rounded mr-2"></div>
+                  <span className="text-sm text-gray-600">상세 문의</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-4 h-4 bg-gradient-to-t from-green-500 to-green-400 rounded mr-2"></div>
+                  <span className="text-sm text-gray-600">간편 문의</span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              <p className="text-gray-500">차트 데이터가 없습니다.</p>
+            </div>
+          )}
         </div>
 
         {/* 통계 카드 */}
