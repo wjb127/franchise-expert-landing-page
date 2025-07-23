@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 interface ContactSubmission {
   id: number;
@@ -162,7 +162,7 @@ export default function AdminPage() {
     }
   };
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -189,7 +189,7 @@ export default function AdminPage() {
       setLoading(false);
       console.log('=== 대시보드 데이터 로딩 완료 ===');
     }
-  };
+  }, [chartPeriod]);
 
   const updateChartPeriod = async (period: 'daily' | 'weekly' | 'monthly') => {
     console.log(`📊 차트 기간 변경: ${period}`);
