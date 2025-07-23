@@ -2,14 +2,11 @@ import Image from "next/image";
 import Header from '../components/Header';
 import FadeInSection from '../components/FadeInSection';
 import Footer from '../components/Footer';
-import ThemeToggle from '../components/ThemeToggle';
 import FixedBottomForm from '../components/FixedBottomForm';
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900">
-      {/* 다크모드 토글 버튼 */}
-      <ThemeToggle />
       
       {/* 헤더 */}
       <Header />
