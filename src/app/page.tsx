@@ -6,10 +6,12 @@ import FAQSection from '@/components/FAQSection';
 import OneClickConsultation from '@/components/OneClickConsultation';
 import Footer from '@/components/Footer';
 import ContactForm from '@/components/ContactForm';
+import ThemeToggle from '@/components/ThemeToggle';
 
 export default function Home() {
   return (
     <main className="min-h-screen">
+      <ThemeToggle />
       <Header />
       <ServiceSection />
       <ExpertSection />
