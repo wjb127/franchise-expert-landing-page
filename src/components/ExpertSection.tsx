@@ -75,8 +75,8 @@ export default function ExpertSection() {
                   <div className="bg-white bg-opacity-10 rounded-lg p-4">
                     <h4 className="font-semibold mb-2">전문가 메시지</h4>
                     <p className="text-sm text-blue-100 leading-relaxed">
-                      "안전하고 성공적인 가맹사업을 위해 법적 리스크를 최소화하고 
-                      올바른 절차를 통해 사업을 시작할 수 있도록 도와드리겠습니다."
+                      &ldquo;안전하고 성공적인 가맹사업을 위해 법적 리스크를 최소화하고 
+                      올바른 절차를 통해 사업을 시작할 수 있도록 도와드리겠습니다.&rdquo;
                     </p>
                   </div>
                 </FadeInSection>

@@ -1,7 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-
 export default function Header() {
   return (
     <section className="relative bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 min-h-screen flex items-center justify-center overflow-hidden">

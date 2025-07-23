@@ -46,7 +46,7 @@ export default function FadeInSection({
 
   return (
     <div
-      ref={ref as any}
+      ref={ref}
       className={`
         transition-all ease-out
         ${getOpacity()}
