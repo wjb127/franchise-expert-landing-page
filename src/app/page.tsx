@@ -3,6 +3,7 @@ import ServiceSection from '@/components/ServiceSection';
 import ExpertSection from '@/components/ExpertSection';
 import BenefitsSection from '@/components/BenefitsSection';
 import FAQSection from '@/components/FAQSection';
+import OneClickConsultation from '@/components/OneClickConsultation';
 import ContactForm from '@/components/ContactForm';
 
 export default function Home() {
@@ -12,10 +13,9 @@ export default function Home() {
       <ServiceSection />
       <ExpertSection />
       <BenefitsSection />
+      <OneClickConsultation />
       <FAQSection />
       <ContactForm />
-      {/* 하단 고정 폼으로 인한 여백 추가 */}
-      <div className="h-40"></div>
     </main>
   );
 }
