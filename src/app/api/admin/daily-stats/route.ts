@@ -18,17 +18,18 @@ interface DailyStat {
 }
 
 export async function GET(request: NextRequest) {
-  console.log('=== Daily Stats API Route 시작 ===');
+  console.log('=== Stats API Route 시작 ===');
   
   try {
     const { searchParams } = new URL(request.url);
     const days = parseInt(searchParams.get('days') || '7');
+    const period = searchParams.get('period') || 'daily';
     
     // API 키 선택
     const apiKey = SUPABASE_SERVICE_KEY || SUPABASE_ANON_KEY;
     const keyType = SUPABASE_SERVICE_KEY ? 'SERVICE_ROLE_KEY (RLS 우회)' : 'ANON_KEY (RLS 적용)';
     
-    console.log(`📊 최근 ${days}일 일별 통계 조회 시작`);
+    console.log(`📊 최근 ${days}일 ${period} 통계 조회 시작`);
     console.log('사용할 API 키:', keyType);
     
     if (!apiKey) {
@@ -78,50 +79,97 @@ export async function GET(request: NextRequest) {
     }
 
     const data: SubmissionData[] = await response.json();
-    console.log(`✅ 일별 통계 원본 데이터 조회 성공: ${data.length}건`);
+    console.log(`✅ ${period} 통계 원본 데이터 조회 성공: ${data.length}건`);
 
-    // 일별 데이터 집계
-    const dailyStats: Record<string, DailyStat> = {};
+    // 기간별 데이터 집계
+    const stats: Record<string, DailyStat> = {};
     const today = new Date();
     
-    // 최근 N일 날짜 배열 생성 (오늘부터 역순)
-    for (let i = days - 1; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD 형식
+    if (period === 'daily') {
+      // 일별 통계 (최근 7일)
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        
+        stats[dateStr] = {
+          date: dateStr,
+          total: 0,
+          quick_contact: 0,
+          full_form: 0,
+          displayDate: date.toLocaleDateString('ko-KR', { 
+            month: 'short', 
+            day: 'numeric' 
+          })
+        };
+      }
       
-      dailyStats[dateStr] = {
-        date: dateStr,
-        total: 0,
-        quick_contact: 0,
-        full_form: 0,
-        displayDate: date.toLocaleDateString('ko-KR', { 
-          month: 'short', 
-          day: 'numeric' 
-        })
-      };
+      // 실제 데이터로 집계
+      data.forEach((submission: SubmissionData) => {
+        const submissionDate = new Date(submission.created_at).toISOString().split('T')[0];
+        if (stats[submissionDate]) {
+          stats[submissionDate].total++;
+        }
+      });
+    } else if (period === 'weekly') {
+      // 주별 통계 (최근 4주)
+      for (let i = 3; i >= 0; i--) {
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - today.getDay() - (i * 7));
+        const weekKey = startOfWeek.toISOString().split('T')[0];
+        
+        stats[weekKey] = {
+          date: weekKey,
+          total: 0,
+          quick_contact: 0,
+          full_form: 0,
+          displayDate: `${startOfWeek.getMonth() + 1}/${startOfWeek.getDate()}`
+        };
+      }
+      
+      // 실제 데이터로 집계
+      data.forEach((submission: SubmissionData) => {
+        const submissionDate = new Date(submission.created_at);
+        const startOfWeek = new Date(submissionDate);
+        startOfWeek.setDate(submissionDate.getDate() - submissionDate.getDay());
+        const weekKey = startOfWeek.toISOString().split('T')[0];
+        
+        if (stats[weekKey]) {
+          stats[weekKey].total++;
+        }
+      });
+    } else if (period === 'monthly') {
+      // 월별 통계 (최근 12개월)
+      for (let i = 11; i >= 0; i--) {
+        const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        
+        stats[monthKey] = {
+          date: monthKey,
+          total: 0,
+          quick_contact: 0,
+          full_form: 0,
+          displayDate: `${date.getMonth() + 1}월`
+        };
+      }
+      
+      // 실제 데이터로 집계
+      data.forEach((submission: SubmissionData) => {
+        const submissionDate = new Date(submission.created_at);
+        const monthKey = `${submissionDate.getFullYear()}-${String(submissionDate.getMonth() + 1).padStart(2, '0')}`;
+        
+        if (stats[monthKey]) {
+          stats[monthKey].total++;
+        }
+      });
     }
     
-    // 실제 데이터로 집계
-    data.forEach((submission: SubmissionData) => {
-      const submissionDate = new Date(submission.created_at).toISOString().split('T')[0];
-      
-      if (dailyStats[submissionDate]) {
-        dailyStats[submissionDate].total++;
-        if (submission.type === 'quick_contact') {
-          dailyStats[submissionDate].quick_contact++;
-        } else if (submission.type === 'full_form') {
-          dailyStats[submissionDate].full_form++;
-        }
-      }
-    });
-    
     // 배열로 변환하고 날짜순 정렬
-    const chartData = Object.values(dailyStats).sort((a: DailyStat, b: DailyStat) => 
+    const chartData = Object.values(stats).sort((a: DailyStat, b: DailyStat) => 
       new Date(a.date).getTime() - new Date(b.date).getTime()
     );
     
-    console.log('✅ 일별 통계 집계 완료:', chartData.length, '일');
+    console.log(`✅ ${period} 통계 집계 완료:`, chartData.length, '개');
     console.log('=== Daily Stats API Route 성공 완료 ===');
     
     return NextResponse.json({

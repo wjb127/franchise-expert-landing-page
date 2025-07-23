@@ -29,10 +29,6 @@ export default function Footer() {
                 <span className="ml-2">공정거래위원회 등록 제 657호</span>
               </div>
               <div>
-                <span className="text-gray-500">총 거래건수:</span>
-                <span className="ml-2">92건</span>
-              </div>
-              <div>
                 <span className="text-gray-500">고객만족도:</span>
                 <span className="ml-2 text-green-400">100%</span>
               </div>
@@ -93,29 +89,6 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* 면책 조항 */}
-        <div className="mt-6 p-4 bg-gray-800 rounded-lg">
-          <h5 className="text-white text-sm font-semibold mb-2">상담 및 서비스 안내</h5>
-          <div className="text-xs text-gray-400 leading-relaxed space-y-1">
-            <p>• <strong>대출승인:</strong> 상담 후 개별 심사를 통해 결정되며, 신용도에 따라 차이가 있을 수 있습니다.</p>
-            <p>• <strong>연체정보:</strong> 연체 시 개인신용평가회사에 연체 정보가 등록될 수 있으며, 이로 인해 신용등급이 하락할 수 있습니다.</p>
-            <p>• <strong>상환방법:</strong> 원리금균등상환방식, 만기일시상환방식 중 선택 가능하며, 중도상환 시 수수료가 발생할 수 있습니다.</p>
-            <p>• <strong>연체시 불이익:</strong> 신용등급 하락, 개인신용평가 하락, 금융거래 제한 등의 불이익이 발생할 수 있습니다.</p>
-            <p className="text-yellow-400 font-medium mt-2">
-              ※ 과도한 차입은 개인신용평가 하락의 원인이 될 수 있습니다. 신중한 대출 이용을 권장합니다.
-            </p>
-          </div>
-        </div>
-
-        {/* 추가 정보 */}
-        <div className="mt-6 text-center">
-          <p className="text-xs text-gray-500">
-            이 사이트에서 광고되는 상품들의 상환 기간은 모두 12개월 이상이며, 최장 120개월 미만입니다.<br/>
-            최대 연 이자율은 20.0%입니다.<br/>
-            연체이자율:약정금리+3%(단, 법정 최고금리 20%이내)<br/>
-            대출 상담을 원하시는 다른 회사의 정보를 제공받을 수 있습니다.
-          </p>
-        </div>
       </div>
     </footer>
   );

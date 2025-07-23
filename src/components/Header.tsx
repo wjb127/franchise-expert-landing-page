@@ -15,55 +15,100 @@ export default function Header() {
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center text-white">
-          {/* 상단 뱃지 */}
-          <div className="inline-block bg-white bg-opacity-20 dark:bg-gray-800 dark:bg-opacity-40 rounded-full px-6 py-2 mb-8 border border-white border-opacity-30 dark:border-gray-600">
-            <span className="text-sm font-medium">공정거래위원회 등록 제 657호 가맹거래사</span>
-          </div>
-
           {/* 메인 타이틀 */}
           <div className="mb-8">
-            <p className="text-yellow-300 dark:text-yellow-200 text-lg mb-4 font-medium">전문 가맹거래사 심상민</p>
-            <h1 className="text-5xl md:text-6xl font-bold leading-tight">
-              안전한 가맹사업 시작
+            <h1 className="text-5xl md:text-6xl font-bold leading-tight mb-4">
+              프랜차이즈 가맹계약 전문
             </h1>
+            <p className="text-2xl md:text-3xl font-medium leading-relaxed">
+              <span className="text-yellow-300 dark:text-yellow-200">잘못된 계약서 하나가</span><br/>
+              <span className="text-red-300 dark:text-red-200">당신의 사업을 망칩니다</span>
+            </p>
           </div>
 
-          {/* 일러스트레이션 영역 */}
-          <div className="flex justify-center items-end mb-12 space-x-8">
-            {/* 사업자 1 */}
-            <div className="text-center">
-              <div className="w-20 h-24 bg-blue-600 dark:bg-blue-500 rounded-t-full mb-2 relative">
-                <div className="absolute top-2 left-1/2 transform -translate-x-1/2 w-6 h-6 bg-orange-300 dark:bg-orange-200 rounded-full"></div>
-                <div className="absolute top-8 left-2 w-4 h-8 bg-orange-400 dark:bg-orange-300 rounded-lg transform rotate-12"></div>
+          {/* 프랜차이즈 가게 일러스트 */}
+          <div className="max-w-4xl mx-auto mb-12">
+            <div className="relative">
+              {/* 거리 배경 */}
+              <div className="absolute inset-0 bg-gradient-to-b from-sky-100 to-gray-100 dark:from-sky-900 dark:to-gray-900 rounded-2xl opacity-20"></div>
+              
+              {/* 가게들 컨테이너 */}
+              <div className="relative p-8">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                  {/* 카페 가게 */}
+                  <div className="relative">
+                    <div className="bg-amber-600 dark:bg-amber-700 rounded-t-xl p-3">
+                      <div className="text-white text-center font-bold text-sm">☕ CAFE</div>
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 rounded-b-xl p-3 shadow-lg">
+                      <div className="flex justify-center gap-1 mb-2">
+                        <div className="w-6 h-6 bg-amber-200 dark:bg-amber-900 rounded"></div>
+                        <div className="w-6 h-6 bg-amber-200 dark:bg-amber-900 rounded"></div>
+                      </div>
+                      <div className="w-full h-8 bg-amber-800 dark:bg-amber-600 rounded flex items-center justify-center">
+                        <div className="w-4 h-4 bg-amber-600 dark:bg-amber-400 rounded-full"></div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* 치킨 가게 */}
+                  <div className="relative">
+                    <div className="bg-red-600 dark:bg-red-700 rounded-t-xl p-3">
+                      <div className="text-white text-center font-bold text-sm">🍗 CHICKEN</div>
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 rounded-b-xl p-3 shadow-lg">
+                      <div className="flex justify-center gap-1 mb-2">
+                        <div className="w-6 h-6 bg-red-200 dark:bg-red-900 rounded"></div>
+                        <div className="w-6 h-6 bg-red-200 dark:bg-red-900 rounded"></div>
+                      </div>
+                      <div className="w-full h-8 bg-red-800 dark:bg-red-600 rounded flex items-center justify-center">
+                        <div className="w-4 h-4 bg-red-600 dark:bg-red-400 rounded-full"></div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* 편의점 가게 */}
+                  <div className="relative">
+                    <div className="bg-green-600 dark:bg-green-700 rounded-t-xl p-3">
+                      <div className="text-white text-center font-bold text-sm">🏪 CVS</div>
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 rounded-b-xl p-3 shadow-lg">
+                      <div className="flex justify-center gap-1 mb-2">
+                        <div className="w-6 h-6 bg-green-200 dark:bg-green-900 rounded"></div>
+                        <div className="w-6 h-6 bg-green-200 dark:bg-green-900 rounded"></div>
+                      </div>
+                      <div className="w-full h-8 bg-green-800 dark:bg-green-600 rounded flex items-center justify-center">
+                        <div className="text-white font-bold text-xs">24H</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* 베이커리 가게 */}
+                  <div className="relative">
+                    <div className="bg-orange-600 dark:bg-orange-700 rounded-t-xl p-3">
+                      <div className="text-white text-center font-bold text-sm">🥐 BAKERY</div>
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 rounded-b-xl p-3 shadow-lg">
+                      <div className="flex justify-center gap-1 mb-2">
+                        <div className="w-6 h-6 bg-orange-200 dark:bg-orange-900 rounded"></div>
+                        <div className="w-6 h-6 bg-orange-200 dark:bg-orange-900 rounded"></div>
+                      </div>
+                      <div className="w-full h-8 bg-orange-800 dark:bg-orange-600 rounded flex items-center justify-center">
+                        <div className="w-4 h-4 bg-orange-600 dark:bg-orange-400 rounded-full"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* 도로 */}
+                <div className="mt-4 h-10 bg-gray-400 dark:bg-gray-700 rounded-lg relative">
+                  <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-around">
+                    <div className="w-12 h-1 bg-yellow-400"></div>
+                    <div className="w-12 h-1 bg-yellow-400"></div>
+                    <div className="w-12 h-1 bg-yellow-400"></div>
+                  </div>
+                </div>
               </div>
-              <div className="w-24 h-16 bg-blue-700 dark:bg-blue-600 rounded-lg"></div>
-            </div>
-
-            {/* 사업자 2 */}
-            <div className="text-center">
-              <div className="w-20 h-24 bg-orange-500 dark:bg-orange-400 rounded-t-full mb-2 relative">
-                <div className="absolute top-2 left-1/2 transform -translate-x-1/2 w-6 h-6 bg-orange-200 dark:bg-orange-100 rounded-full"></div>
-                <div className="absolute top-8 right-2 w-4 h-8 bg-red-500 dark:bg-red-400 rounded-lg transform -rotate-12"></div>
-              </div>
-              <div className="w-24 h-16 bg-orange-600 dark:bg-orange-500 rounded-lg"></div>
-            </div>
-
-            {/* 사업자 3 */}
-            <div className="text-center">
-              <div className="w-20 h-24 bg-blue-600 dark:bg-blue-500 rounded-t-full mb-2 relative">
-                <div className="absolute top-2 left-1/2 transform -translate-x-1/2 w-6 h-6 bg-orange-300 dark:bg-orange-200 rounded-full"></div>
-                <div className="absolute top-8 left-2 w-4 h-8 bg-orange-400 dark:bg-orange-300 rounded-lg transform rotate-45"></div>
-              </div>
-              <div className="w-24 h-16 bg-blue-700 dark:bg-blue-600 rounded-lg"></div>
-            </div>
-
-            {/* 사업자 4 */}
-            <div className="text-center">
-              <div className="w-20 h-24 bg-white dark:bg-gray-200 rounded-t-full mb-2 relative">
-                <div className="absolute top-2 left-1/2 transform -translate-x-1/2 w-6 h-6 bg-orange-300 dark:bg-orange-400 rounded-full"></div>
-                <div className="absolute top-8 right-2 w-4 h-8 bg-orange-400 dark:bg-orange-500 rounded-lg transform rotate-45"></div>
-              </div>
-              <div className="w-24 h-16 bg-gray-100 dark:bg-gray-300 rounded-lg"></div>
             </div>
           </div>
 

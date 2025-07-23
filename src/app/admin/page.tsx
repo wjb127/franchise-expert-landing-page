@@ -31,14 +31,40 @@ interface DailyStatsResponse {
 }
 
 export default function AdminPage() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState('');
+  const [authError, setAuthError] = useState('');
   const [submissions, setSubmissions] = useState<ContactSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedSubmission, setSelectedSubmission] = useState<ContactSubmission | null>(null);
-  const [filter, setFilter] = useState<'all' | 'full_form' | 'quick_contact'>('all');
   const [weeklyCount, setWeeklyCount] = useState<number>(0);
   const [dailyStats, setDailyStats] = useState<DailyStat[]>([]);
-  const [chartDays, setChartDays] = useState<number>(7);
+  const [chartPeriod, setChartPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily');
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === 'kmong2025!') {
+      setIsAuthenticated(true);
+      setAuthError('');
+      localStorage.setItem('admin_auth', 'true');
+    } else {
+      setAuthError('비밀번호가 올바르지 않습니다.');
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem('admin_auth');
+  };
+
+  // 페이지 로드 시 인증상태 확인
+  useEffect(() => {
+    const authStatus = localStorage.getItem('admin_auth');
+    if (authStatus === 'true') {
+      setIsAuthenticated(true);
+    }
+  }, []);
 
   const fetchSubmissions = async () => {
     console.log('=== 제출 데이터 조회 시작 ===');
@@ -94,21 +120,36 @@ export default function AdminPage() {
     }
   };
 
-  const fetchDailyStats = async (days: number = 7) => {
-    console.log('=== 일별 통계 조회 시작 ===');
+  const fetchDailyStats = async (period: 'daily' | 'weekly' | 'monthly' = 'daily') => {
+    console.log('=== 통계 조회 시작 ===', period);
     
     try {
-      const response = await fetch(`/api/admin/daily-stats?days=${days}`);
-      console.log('API 응답 상태 (일별 통계):', response.status);
+      let days: number;
+      switch (period) {
+        case 'daily':
+          days = 7; // 최근 7일
+          break;
+        case 'weekly':
+          days = 28; // 최근 4주
+          break;
+        case 'monthly':
+          days = 365; // 최근 12개월
+          break;
+        default:
+          days = 7;
+      }
+      
+      const response = await fetch(`/api/admin/daily-stats?days=${days}&period=${period}`);
+      console.log('API 응답 상태 (통계):', response.status);
       
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('API 오류 응답 (일별 통계):', errorData);
+        console.error('API 오류 응답 (통계):', errorData);
         throw new Error(errorData.error || `HTTP ${response.status}`);
       }
       
       const result: DailyStatsResponse = await response.json();
-      console.log('일별 통계 조회 성공:', result.data?.length || 0, '일');
+      console.log('통계 조회 성공:', result.data?.length || 0, '개');
       
       if (result.success && result.data) {
         return result.data;
@@ -116,7 +157,7 @@ export default function AdminPage() {
         throw new Error('API 응답 형식이 올바르지 않습니다.');
       }
     } catch (error) {
-      console.error('일별 통계 조회 오류:', error);
+      console.error('통계 조회 오류:', error);
       return []; // 통계 오류는 빈 배열로 기본값 설정
     }
   };
@@ -130,7 +171,7 @@ export default function AdminPage() {
       const [submissionsData, weeklyCountData, dailyStatsData] = await Promise.all([
         fetchSubmissions(),
         fetchWeeklyCount(),
-        fetchDailyStats(chartDays)
+        fetchDailyStats(chartPeriod)
       ]);
       
       setSubmissions(submissionsData);
@@ -150,12 +191,12 @@ export default function AdminPage() {
     }
   };
 
-  const updateChartPeriod = async (days: number) => {
-    console.log(`📊 차트 기간 변경: ${days}일`);
-    setChartDays(days);
+  const updateChartPeriod = async (period: 'daily' | 'weekly' | 'monthly') => {
+    console.log(`📊 차트 기간 변경: ${period}`);
+    setChartPeriod(period);
     
     try {
-      const newDailyStats = await fetchDailyStats(days);
+      const newDailyStats = await fetchDailyStats(period);
       setDailyStats(newDailyStats);
     } catch (error) {
       console.error('차트 데이터 업데이트 오류:', error);
@@ -163,21 +204,20 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
-    fetchData();
-    
-    // 30초마다 자동 새로고침
-    const interval = setInterval(() => {
-      console.log('⏰ 자동 새로고침 실행');
+    if (isAuthenticated) {
       fetchData();
-    }, 30000);
-    
-    return () => clearInterval(interval);
-  }, [chartDays]);
+      
+      // 30초마다 자동 새로고침
+      const interval = setInterval(() => {
+        console.log('⏰ 자동 새로고침 실행');
+        fetchData();
+      }, 30000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [chartPeriod, isAuthenticated]);
 
-  const filteredSubmissions = submissions.filter(submission => {
-    if (filter === 'all') return true;
-    return submission.type === filter;
-  });
+  const filteredSubmissions = submissions;
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -196,8 +236,10 @@ export default function AdminPage() {
         return '상세 문의';
       case 'quick_contact':
         return '간편 문의';
+      case 'fixed_bottom':
+        return '하단 폼';
       default:
-        return type;
+        return '일반 문의';
     }
   };
 
@@ -207,6 +249,8 @@ export default function AdminPage() {
         return 'bg-blue-100 text-blue-800';
       case 'quick_contact':
         return 'bg-green-100 text-green-800';
+      case 'fixed_bottom':
+        return 'bg-purple-100 text-purple-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -214,6 +258,50 @@ export default function AdminPage() {
 
   // 차트용 최대값 계산
   const maxValue = Math.max(...dailyStats.map(stat => stat.total), 1);
+
+  // 인증되지 않은 경우 로그인 화면 표시
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">관리자 인증</h2>
+            <p className="text-gray-600 mt-2">대시보드 접속을 위해 비밀번호를 입력하세요</p>
+          </div>
+          
+          <form onSubmit={handleLogin}>
+            <div className="mb-4">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                비밀번호
+              </label>
+              <input
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="비밀번호를 입력하세요"
+                required
+              />
+            </div>
+            
+            {authError && (
+              <div className="mb-4 p-3 bg-red-100 border border-red-300 rounded-md">
+                <p className="text-red-700 text-sm">{authError}</p>
+              </div>
+            )}
+            
+            <button
+              type="submit"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition-colors"
+            >
+              로그인
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -263,58 +351,73 @@ export default function AdminPage() {
               <h1 className="text-2xl font-bold text-gray-900">가맹거래사 상담 문의 관리</h1>
               <p className="text-gray-600 mt-1">실시간 상담 신청 현황을 확인할 수 있습니다</p>
             </div>
-            <button
-              onClick={() => {
-                console.log('🔄 수동 새로고침 실행');
-                fetchData();
-              }}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              <span>새로고침</span>
-            </button>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => {
+                  console.log('🔄 수동 새로고침 실행');
+                  fetchData();
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span>새로고침</span>
+              </button>
+              <button
+                onClick={handleLogout}
+                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span>로그아웃</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* 일별 문의 현황 차트 */}
+        {/* 문의 현황 차트 */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h3 className="text-lg font-medium text-gray-900">일별 문의 현황</h3>
-              <p className="text-sm text-gray-600">최근 {chartDays}일간 문의 추이</p>
+              <h3 className="text-lg font-medium text-gray-900">문의 현황</h3>
+              <p className="text-sm text-gray-600">
+                {chartPeriod === 'daily' && '최근 7일간 일별 문의 추이'}
+                {chartPeriod === 'weekly' && '최근 4주간 주별 문의 추이'}
+                {chartPeriod === 'monthly' && '최근 12개월간 월별 문의 추이'}
+              </p>
             </div>
             <div className="flex space-x-2">
               <button
-                onClick={() => updateChartPeriod(7)}
+                onClick={() => updateChartPeriod('daily')}
                 className={`px-3 py-1 rounded text-sm transition-colors ${
-                  chartDays === 7 
+                  chartPeriod === 'daily' 
                     ? 'bg-blue-600 text-white' 
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                7일
+                일별
               </button>
               <button
-                onClick={() => updateChartPeriod(14)}
+                onClick={() => updateChartPeriod('weekly')}
                 className={`px-3 py-1 rounded text-sm transition-colors ${
-                  chartDays === 14 
+                  chartPeriod === 'weekly' 
                     ? 'bg-blue-600 text-white' 
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                14일
+                주별
               </button>
               <button
-                onClick={() => updateChartPeriod(30)}
+                onClick={() => updateChartPeriod('monthly')}
                 className={`px-3 py-1 rounded text-sm transition-colors ${
-                  chartDays === 30 
+                  chartPeriod === 'monthly' 
                     ? 'bg-blue-600 text-white' 
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                30일
+                월별
               </button>
             </div>
           </div>
@@ -322,9 +425,9 @@ export default function AdminPage() {
           {dailyStats.length > 0 ? (
             <div className="relative">
               {/* 차트 영역 */}
-              <div className="flex items-end justify-between h-64 border-b border-l border-gray-200 p-4">
+              <div className="flex items-end justify-between h-48 border-b border-l border-gray-200 p-4 mb-8">
                 {dailyStats.map((stat, index) => {
-                  const barHeight = maxValue > 0 ? (stat.total / maxValue) * 240 : 0;
+                  const barHeight = maxValue > 0 ? (stat.total / maxValue) * 160 : 0;
                   
                   return (
                     <div key={stat.date} className="flex flex-col items-center group">
@@ -335,23 +438,11 @@ export default function AdminPage() {
                           className="w-8 bg-gradient-to-t from-blue-500 to-blue-400 rounded-t-sm hover:from-blue-600 hover:to-blue-500 transition-all duration-200 relative group-hover:shadow-lg"
                           style={{ height: `${barHeight}px`, minHeight: stat.total > 0 ? '8px' : '0px' }}
                         >
-                          {/* 간편 문의 (녹색 부분) */}
-                          {stat.quick_contact > 0 && (
-                            <div 
-                              className="absolute bottom-0 w-full bg-gradient-to-t from-green-500 to-green-400 rounded-t-sm"
-                              style={{ 
-                                height: `${stat.total > 0 ? (stat.quick_contact / stat.total) * barHeight : 0}px`,
-                                minHeight: stat.quick_contact > 0 ? '4px' : '0px'
-                              }}
-                            ></div>
-                          )}
                         </div>
                         
                         {/* 호버 시 상세 정보 */}
-                        <div className="invisible group-hover:visible absolute -top-16 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
-                          <div>전체: {stat.total}건</div>
-                          <div>간편: {stat.quick_contact}건</div>
-                          <div>상세: {stat.full_form}건</div>
+                        <div className="invisible group-hover:visible absolute -top-16 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-20">
+                          <div>문의: {stat.total}건</div>
                           <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
                         </div>
                         
@@ -373,14 +464,14 @@ export default function AdminPage() {
               </div>
               
               {/* 범례 */}
-              <div className="flex justify-center mt-4 space-x-6">
+              <div className="flex justify-center mt-6">
                 <div className="flex items-center">
                   <div className="w-4 h-4 bg-gradient-to-t from-blue-500 to-blue-400 rounded mr-2"></div>
-                  <span className="text-sm text-gray-600">상세 문의</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-4 h-4 bg-gradient-to-t from-green-500 to-green-400 rounded mr-2"></div>
-                  <span className="text-sm text-gray-600">간편 문의</span>
+                  <span className="text-sm text-gray-600">
+                    {chartPeriod === 'daily' && '일별 문의'}
+                    {chartPeriod === 'weekly' && '주별 문의'}
+                    {chartPeriod === 'monthly' && '월별 문의'}
+                  </span>
                 </div>
               </div>
             </div>
@@ -395,53 +486,27 @@ export default function AdminPage() {
         </div>
 
         {/* 통계 카드 */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center">
+              <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">일간 문의</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {dailyStats.length > 0 ? dailyStats[dailyStats.length - 1].total : 0}
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="flex items-center">
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                 <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a2 2 0 01-2-2v-6a2 2 0 012-2h8z" />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">전체 문의</p>
-                <p className="text-2xl font-bold text-gray-900">{submissions.length}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">간편 문의</p>
-                <p className="text-2xl font-bold text-gray-900">{submissions.filter(s => s.type === 'quick_contact').length}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">상세 문의</p>
-                <p className="text-2xl font-bold text-gray-900">{submissions.filter(s => s.type === 'full_form').length}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </div>
@@ -451,43 +516,29 @@ export default function AdminPage() {
               </div>
             </div>
           </div>
-        </div>
 
-        {/* 필터 */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="flex space-x-4">
-            <button
-              onClick={() => setFilter('all')}
-              className={`px-4 py-2 rounded-lg transition-colors ${
-                filter === 'all' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              전체 ({submissions.length})
-            </button>
-            <button
-              onClick={() => setFilter('quick_contact')}
-              className={`px-4 py-2 rounded-lg transition-colors ${
-                filter === 'quick_contact' 
-                  ? 'bg-green-600 text-white' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              간편 문의 ({submissions.filter(s => s.type === 'quick_contact').length})
-            </button>
-            <button
-              onClick={() => setFilter('full_form')}
-              className={`px-4 py-2 rounded-lg transition-colors ${
-                filter === 'full_form' 
-                  ? 'bg-purple-600 text-white' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              상세 문의 ({submissions.filter(s => s.type === 'full_form').length})
-            </button>
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center">
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">월간 문의</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {submissions.filter(s => {
+                    const date = new Date(s.created_at);
+                    const now = new Date();
+                    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                    return date >= monthAgo;
+                  }).length}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
+
 
         {/* 문의 목록 */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -514,9 +565,6 @@ export default function AdminPage() {
                       전화번호
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      유형
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       문의 시간
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -532,11 +580,6 @@ export default function AdminPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{submission.phone}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTypeBadgeColor(submission.type)}`}>
-                          {getTypeLabel(submission.type)}
-                        </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {formatDate(submission.created_at)}

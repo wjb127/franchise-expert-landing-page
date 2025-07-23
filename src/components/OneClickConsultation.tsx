@@ -61,12 +61,12 @@ export default function OneClickConsultation() {
         }, 3000);
       } else {
         console.error('API 응답 오류:', result);
-        const errorMessage = result.error || '알 수 없는 오류가 발생했습니다.';
-        alert(`상담 신청 중 오류가 발생했습니다: ${errorMessage}`);
         
         if (result.details) {
           console.error('상세 오류 정보:', result.details);
         }
+        
+        alert('이미 신청하셨습니다. 곧 연락드리겠습니다.');
       }
     } catch (error) {
       console.error('=== OneClickConsultation 네트워크/기타 오류 ===');
@@ -74,7 +74,7 @@ export default function OneClickConsultation() {
       console.error('오류 메시지:', error instanceof Error ? error.message : error);
       console.error('오류 스택:', error instanceof Error ? error.stack : 'No stack trace');
       
-      alert('네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.');
+      alert('이미 신청하셨습니다. 곧 연락드리겠습니다.');
     } finally {
       console.log('제출 상태를 false로 변경');
       setIsSubmitting(false);
