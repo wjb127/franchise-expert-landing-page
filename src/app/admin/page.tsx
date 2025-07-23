@@ -215,7 +215,7 @@ export default function AdminPage() {
       
       return () => clearInterval(interval);
     }
-  }, [chartPeriod, isAuthenticated]);
+  }, [chartPeriod, isAuthenticated, fetchData]);
 
   const filteredSubmissions = submissions;
 
@@ -426,7 +426,7 @@ export default function AdminPage() {
             <div className="relative">
               {/* 차트 영역 */}
               <div className="flex items-end justify-between h-48 border-b border-l border-gray-200 p-4 mb-8">
-                {dailyStats.map((stat, index) => {
+                {dailyStats.map((stat) => {
                   const barHeight = maxValue > 0 ? (stat.total / maxValue) * 160 : 0;
                   
                   return (

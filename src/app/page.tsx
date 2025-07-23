@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Header from '../components/Header';
 import FadeInSection from '../components/FadeInSection';
 import Footer from '../components/Footer';

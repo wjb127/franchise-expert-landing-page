@@ -28,7 +28,7 @@ export default function PrivacyPolicy() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">1. 개인정보의 처리목적</h2>
               <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
-                가맹거래사 심상민(이하 "개인사업자")은 다음의 목적을 위하여 개인정보를 처리합니다. 
+                가맹거래사 심상민(이하 &quot;개인사업자&quot;)은 다음의 목적을 위하여 개인정보를 처리합니다. 
                 처리하고 있는 개인정보는 다음의 목적 이외의 용도로는 이용되지 않으며, 
                 이용 목적이 변경되는 경우에는 개인정보보호법 제18조에 따라 별도의 동의를 받는 등 필요한 조치를 이행할 예정입니다.
               </p>
