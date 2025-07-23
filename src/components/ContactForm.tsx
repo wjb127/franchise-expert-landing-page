@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { submitContactForm } from '../../lib/supabase';
 
 export default function ContactForm() {
   const [name, setName] = useState('');
@@ -12,33 +11,73 @@ export default function ContactForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('=== ContactForm 제출 시작 ===');
+    console.log('입력된 데이터:', { name: name.trim(), phone: phone.trim() });
+    
     if (!name.trim() || !phone.trim()) {
+      console.log('유효성 검사 실패: 빈 필드 존재');
       alert('이름과 전화번호를 모두 입력해주세요.');
       return;
     }
 
     setIsSubmitting(true);
+    console.log('제출 상태를 true로 변경');
     
     try {
-      await submitContactForm({
+      const submitData = {
         name: name.trim(),
         phone: phone.trim(),
         message: '하단 고정 원클릭 상담 신청',
         type: 'quick_contact'
+      };
+      
+      console.log('API로 전송할 데이터:', submitData);
+      console.log('API 호출 시작: /api/contact');
+      
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submitData)
       });
       
-      setSubmitSuccess(true);
-      setName('');
-      setPhone('');
+      console.log('API 응답 상태:', response.status);
+      console.log('API 응답 headers:', Object.fromEntries(response.headers.entries()));
       
-      setTimeout(() => {
-        setSubmitSuccess(false);
-      }, 3000);
+      const result = await response.json();
+      console.log('API 응답 데이터:', result);
+      
+      if (response.ok && result.success) {
+        console.log('제출 성공!');
+        setSubmitSuccess(true);
+        setName('');
+        setPhone('');
+        
+        setTimeout(() => {
+          console.log('성공 메시지 자동 숨김');
+          setSubmitSuccess(false);
+        }, 3000);
+      } else {
+        console.error('API 응답 오류:', result);
+        const errorMessage = result.error || '알 수 없는 오류가 발생했습니다.';
+        alert(`상담 신청 중 오류가 발생했습니다: ${errorMessage}`);
+        
+        if (result.details) {
+          console.error('상세 오류 정보:', result.details);
+        }
+      }
     } catch (error) {
-      console.error('상담 신청 오류:', error);
-      alert('상담 신청 중 오류가 발생했습니다. 다시 시도해주세요.');
+      console.error('=== ContactForm 네트워크/기타 오류 ===');
+      console.error('오류 타입:', error?.constructor?.name);
+      console.error('오류 메시지:', error instanceof Error ? error.message : error);
+      console.error('오류 스택:', error instanceof Error ? error.stack : 'No stack trace');
+      
+      alert('네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.');
     } finally {
+      console.log('제출 상태를 false로 변경');
       setIsSubmitting(false);
+      console.log('=== ContactForm 제출 완료 ===');
     }
   };
 

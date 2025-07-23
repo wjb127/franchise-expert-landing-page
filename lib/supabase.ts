@@ -2,6 +2,8 @@
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+// 서비스 키가 있으면 사용, 없으면 anon 키 사용
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY;
 
 interface ContactFormData {
   name: string;
@@ -22,11 +24,14 @@ interface ContactSubmission {
 // 연락처 폼 데이터 제출
 export async function submitContactForm(data: ContactFormData) {
   try {
+    // 클라이언트에서는 anon 키, 서버에서는 서비스 키 사용
+    const apiKey = typeof window === 'undefined' ? SUPABASE_SERVICE_KEY : SUPABASE_ANON_KEY;
+    
     const response = await fetch(`${SUPABASE_URL}/rest/v1/kmong_1_contact_submissions`, {
       method: 'POST',
       headers: {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'apikey': apiKey,
+        'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
         'Prefer': 'return=representation'
       },
@@ -41,6 +46,12 @@ export async function submitContactForm(data: ContactFormData) {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('API 응답 오류:', response.status, errorText);
+      
+      // RLS 오류인 경우 더 자세한 안내
+      if (response.status === 401 && errorText.includes('row-level security')) {
+        console.error('RLS 정책 오류: Supabase에서 익명 사용자의 INSERT를 허용하는 정책이 필요합니다.');
+      }
+      
       throw new Error(`API 호출 실패: ${response.status} ${response.statusText}`);
     }
 
