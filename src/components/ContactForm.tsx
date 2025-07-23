@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { submitContactForm } from '../../lib/supabase';
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({
@@ -12,6 +13,8 @@ export default function ContactForm() {
     agreeToTerms: false
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -29,27 +32,48 @@ export default function ContactForm() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (!formData.agreeToTerms) {
       alert('개인정보 수집/이용/제공에 동의해주세요.');
       return;
     }
-    // 여기서 실제 폼 제출 로직을 구현
-    console.log('폼 데이터:', formData);
-    setIsSubmitted(true);
-    
-    // 3초 후 폼 리셋
-    setTimeout(() => {
-      setIsSubmitted(false);
-      setFormData({
-        name: '',
-        phone: '',
-        businessType: '',
-        hasExperience: '',
-        agreeToTerms: false
+
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      // Supabase에 데이터 저장
+      const message = `업종: ${formData.businessType}, 사업경험: ${formData.hasExperience}`;
+      
+      await submitContactForm({
+        name: formData.name,
+        phone: formData.phone,
+        message: message,
+        type: 'quick_contact'
       });
-    }, 3000);
+
+      setIsSubmitted(true);
+      
+      // 3초 후 폼 리셋
+      setTimeout(() => {
+        setIsSubmitted(false);
+        setFormData({
+          name: '',
+          phone: '',
+          businessType: '',
+          hasExperience: '',
+          agreeToTerms: false
+        });
+      }, 3000);
+
+    } catch (err) {
+      console.error('폼 제출 오류:', err);
+      setError('문의 접수 중 오류가 발생했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -70,6 +94,12 @@ export default function ContactForm() {
             <div className="flex-shrink-0">
               {!isSubmitted ? (
                 <form onSubmit={handleSubmit} className="bg-white rounded-lg p-6 min-w-[400px] max-w-md">
+                  {error && (
+                    <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded">
+                      {error}
+                    </div>
+                  )}
+                  
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div>
                       <input
@@ -80,6 +110,7 @@ export default function ContactForm() {
                         onChange={handleInputChange}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                         required
+                        disabled={isSubmitting}
                       />
                     </div>
                     <div>
@@ -91,6 +122,7 @@ export default function ContactForm() {
                         onChange={handleInputChange}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                         required
+                        disabled={isSubmitting}
                       />
                     </div>
                   </div>
@@ -103,6 +135,7 @@ export default function ContactForm() {
                         onChange={handleInputChange}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
                         required
+                        disabled={isSubmitting}
                       >
                         <option value="">업종 선택</option>
                         <option value="restaurant">외식업</option>
@@ -122,6 +155,7 @@ export default function ContactForm() {
                         onChange={handleInputChange}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
                         required
+                        disabled={isSubmitting}
                       >
                         <option value="">사업경험</option>
                         <option value="beginner">신규창업</option>
@@ -140,6 +174,7 @@ export default function ContactForm() {
                         onChange={handleInputChange}
                         className="mt-0.5 mr-2 text-blue-600 focus:ring-blue-500"
                         required
+                        disabled={isSubmitting}
                       />
                       <span>
                         개인정보 수집/이용/제공 동의{' '}
@@ -152,9 +187,10 @@ export default function ContactForm() {
 
                   <button
                     type="submit"
-                    className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition-colors font-semibold text-sm"
+                    disabled={isSubmitting}
+                    className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition-colors font-semibold text-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
                   >
-                    신청
+                    {isSubmitting ? '접수 중...' : '신청'}
                   </button>
                 </form>
               ) : (
