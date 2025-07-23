@@ -50,9 +50,9 @@ export default function OneClickConsultation() {
           <FadeInSection>
             <div className="max-w-xl mx-auto text-center">
               <div className="bg-green-50 border border-green-200 rounded-xl p-6">
-                <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                <div className="w-12 h-12 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
                 <h2 className="text-xl font-bold text-green-800 mb-2">상담 신청이 완료되었습니다!</h2>
@@ -72,6 +72,11 @@ export default function OneClickConsultation() {
       <div className="container mx-auto px-4">
         <FadeInSection>
           <div className="max-w-xl mx-auto text-center mb-8">
+            <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg transform rotate-3">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.362-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+              </svg>
+            </div>
             <h2 className="text-3xl font-bold text-gray-900 mb-3">
               원클릭 상담 신청
             </h2>
@@ -90,7 +95,12 @@ export default function OneClickConsultation() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                    이름 <span className="text-red-500">*</span>
+                    <div className="flex items-center">
+                      <svg className="w-4 h-4 text-blue-500 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                      </svg>
+                      이름 <span className="text-red-500">*</span>
+                    </div>
                   </label>
                   <input
                     type="text"
@@ -105,7 +115,12 @@ export default function OneClickConsultation() {
 
                 <div>
                   <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                    전화번호 <span className="text-red-500">*</span>
+                    <div className="flex items-center">
+                      <svg className="w-4 h-4 text-blue-500 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
+                      </svg>
+                      전화번호 <span className="text-red-500">*</span>
+                    </div>
                   </label>
                   <input
                     type="tel"
@@ -121,7 +136,7 @@ export default function OneClickConsultation() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg"
                 >
                   {isSubmitting ? (
                     <div className="flex items-center justify-center">
@@ -129,22 +144,40 @@ export default function OneClickConsultation() {
                       상담 신청 중...
                     </div>
                   ) : (
-                    '무료 상담 신청하기'
+                    <div className="flex items-center justify-center">
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                      </svg>
+                      무료 상담 신청하기
+                    </div>
                   )}
                 </button>
 
-                <div className="bg-gray-50 rounded-lg p-3">
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-3 border border-blue-100">
                   <div className="flex items-start">
                     <div className="flex-shrink-0">
-                      <svg className="w-4 h-4 text-blue-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                      </svg>
+                      <div className="w-6 h-6 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
+                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                        </svg>
+                      </div>
                     </div>
                     <div className="ml-2">
-                      <h4 className="text-sm font-medium text-gray-900 mb-1">상담 안내</h4>
+                      <h4 className="text-sm font-medium text-gray-900 mb-1 flex items-center">
+                        <svg className="w-4 h-4 text-blue-500 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        상담 안내
+                      </h4>
                       <ul className="text-xs text-gray-600 space-y-0.5">
-                        <li>• 평균 응답 시간: 1시간 이내</li>
-                        <li>• 상담료는 완전 무료입니다</li>
+                        <li className="flex items-center">
+                          <span className="w-1 h-1 bg-blue-400 rounded-full mr-2"></span>
+                          평균 응답 시간: 1시간 이내
+                        </li>
+                        <li className="flex items-center">
+                          <span className="w-1 h-1 bg-green-400 rounded-full mr-2"></span>
+                          상담료는 완전 무료입니다
+                        </li>
                       </ul>
                     </div>
                   </div>
